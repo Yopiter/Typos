@@ -1,0 +1,172 @@
+<?php
+
+function getChapText($iChapNummer, $sLineBreak = '\n')
+{
+    $sUrl = getChapUrl($iChapNummer);
+    $sContent = file_get_contents($sUrl);
+    $sContent = explode('<div id="chapterContent" class="innerContent fr-view">', $sContent)[1] ?? '';
+    $sContent = explode('</div>', $sContent)[0] ?? '';
+    $iHits = preg_match_all("/<p[^>]*>((?!<\/p>).)*<\/p>/", $sContent, $aRows);
+    if (empty($iHits)) {
+        die("Keine Inhalte auf der <a href='$sUrl'>Seite</a> gefunden");
+    }
+    return implode($sLineBreak, array_map(function ($sRow) {
+        return preg_replace('/<.*?>/', '', $sRow);
+    }, $aRows[0]));
+}
+
+function initiateSession()
+{
+    error_reporting(E_ALL);
+    session_start();
+    $_SESSION['#disabled'] = false;
+    if (empty($_SESSION['novel'])) {
+        $_SESSION['novel'] = 0;
+    }
+    if (empty($_SESSION['chap'])) {
+        $_SESSION['chap'] = 1;
+    }
+}
+
+function setNovel($iNovelId)
+{
+    $_SESSION['novel'] = $iNovelId;
+}
+
+function setChapter($iChapter)
+{
+    $_SESSION['chap'] = $iChapter;
+}
+
+function checkForParameters(array $aParameter, array $aArray = null)
+{
+    if (!$aArray) {
+        $aArray = $_REQUEST;
+    }
+    $bFehler = false;
+    foreach ($aParameter as $sParam) {
+        if (empty($aArray[$sParam])) {
+            setMessage("Missing parameter $sParam", 'error');
+            $bFehler = true;
+        }
+    }
+    if ($bFehler) {
+        $iChap = $_SESSION['chap'] ?? 1;
+        redirectNow("ViewChap.php?chap=$iChap");
+    }
+}
+
+function setMessage($sNachricht, $sType = 'bestaetigung')
+{
+    $_SESSION['messages'][] = ['text' => $sNachricht, 'type' => $sType];
+}
+
+function showMessages()
+{
+    if (isset($_SESSION['#disabled']) && $_SESSION['#disabled']) {
+        return;
+    }
+    if (!empty($_SESSION['messages'])) {
+        foreach ($_SESSION['messages'] as $aFehler) {
+            printMessageBox($aFehler['text'], $aFehler['type']);
+        }
+        unset($_SESSION['messages']);
+    }
+}
+
+function printMessageBox($sNachricht, $sClass = 'bestaetigung')
+{
+    echo "<div class='$sClass'>$sNachricht</div>";
+}
+
+function importAllChaps(DB_Connector $oConnect)
+{
+    $aChapsFromDB = $oConnect->getAllChapsFromNovel();
+    $iChap = 0;
+    while (true) {
+        if (isset($aChapsFromDB[$iChap])) {
+            $iChap++;
+            continue;
+        }
+        $sUrl = getChapUrl($iChap);
+        $sContent = file_get_contents($sUrl);
+        if (!$sContent || strpos($sContent, 'Oops! That page can’t be found.') !== false) {
+            $iChap--;
+            break;
+        }
+        //Chapter existiert
+        $oConnect->createChap(getCurrentNovel(), $iChap);
+        $iChap++;
+    }
+    return $iChap;
+}
+
+function getChapUrl(int $iChap)
+{
+    return "http://www.wuxiaworld.com/novel/blue-phoenix/bp-chapter-$iChap/";
+}
+
+function getCurrentNovel()
+{
+    return $_SESSION['novel'] ?? 0;
+}
+
+function getCurrentChapter()
+{
+    return $_SESSION['chap'] ?? 1;
+}
+
+function printTypeSelect(DB_Connector $oConnect, $sID = 'type', $iSelectedID = 0)
+{
+    $aTypes = $oConnect->getAllErrorTypes();
+    $aTypes[0] = ['Name' => 'Choose error type'];
+    echo "<select name='$sID'>";
+    foreach ($aTypes as $iTyp => $aTyp) {
+        $sSelected = $iTyp == $iSelectedID ? 'Selected' : '';
+        echo "<option value=$iTyp $sSelected>$aTyp[Name]</option>";
+    }
+    echo '</select>';
+}
+
+function printNovelSelect(DB_Connector $oConnect, $sId = 'novel', $iSelectedID = '0')
+{
+    echo "<select name='$sId'>";
+    echo '<option value=0>Please choose a chapter</option>';
+    $aNovels = $oConnect->getNovels();
+    foreach ($aNovels as $iNovelId => $sNovel) {
+        echo "<optgroup label='$sNovel'>";
+        $aChaps = $oConnect->getChapsFromNovel($iNovelId);
+        foreach ($aChaps as $iChapId => $iChapNummer) {
+            $sSelected = $iSelectedID == $iChapId ? 'selected' : '';
+            echo "<option value=$iChapId $sSelected>$iChapNummer</option>";
+        }
+        echo '</optgroup>';
+    }
+    echo '</select>';
+}
+
+function isUnique($sNeedle, $sHaystack)
+{
+    return substr_count($sHaystack, $sNeedle) === 1;
+}
+
+function stringToShowString(string $sInput)
+{
+    return str_replace(array('&#10;', '\n'), '<br/>', $sInput);
+}
+
+function stringToTextareaString(string $sInput)
+{
+    return str_replace(array('<br/>', '\n'), '&#10;', $sInput);
+}
+
+function stringToCleanString(string $sInput)
+{
+    return str_replace(array('<br/>', '&#10;'), '\n', $sInput);
+}
+
+function redirectNow(string $sLocation)
+{
+    $_SESSION['#disabled'] = true;
+    header("location:$sLocation");
+}
