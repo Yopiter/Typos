@@ -12,7 +12,7 @@ if (isset($_GET['chap'])) {
         $aChap = $oConnect->getChapArrFromID($iSelected);
         setNovel($aChap['Novels_ID']);
         setChapter($aChap['ChapNummer']);
-        redirectNow('ViewChap.php');
+        redirectNow('EditError.php');
     }
 }
 ?>

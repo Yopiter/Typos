@@ -4,11 +4,7 @@ require_once 'DB_Connector.php';
 initiateSession();
 checkForParameters(['chap'], $_SESSION);
 $oConnect = new DB_Connector();
-if (isset($_POST['chap']) && !empty($_POST['chap'])) {
-    $aChap = $oConnect->getChapArrFromID($_POST['chap']);
-    setNovel($aChap['Novels_ID']);
-    setChapter($aChap['ChapNummer']);
-}
+setNewChap($oConnect,$_POST,'chap');
 $iChap = getCurrentChapter();
 $sText = getChapText($iChap);
 ?>

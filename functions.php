@@ -130,7 +130,7 @@ function printTypeSelect(DB_Connector $oConnect, $sID = 'type', $iSelectedID = 0
 
 function printNovelSelect(DB_Connector $oConnect, $sId = 'novel', $iSelectedID = '0')
 {
-    echo "<select name='$sId'>";
+    echo "<select name='$sId' onchange='if(this.value != 0) {this.form.submit();}'>";
     echo '<option value=0>Please choose a chapter</option>';
     $aNovels = $oConnect->getNovels();
     foreach ($aNovels as $iNovelId => $sNovel) {
@@ -147,26 +147,38 @@ function printNovelSelect(DB_Connector $oConnect, $sId = 'novel', $iSelectedID =
 
 function isUnique($sNeedle, $sHaystack)
 {
-    return substr_count($sHaystack, $sNeedle) === 1;
+    return substr_count(stringToCleanString($sHaystack), stringToCleanString($sNeedle)) === 1;
 }
 
-function stringToShowString(string $sInput)
+function stringToShowString(string $sInput = null)
 {
-    return str_replace(array('&#10;', '\n'), '<br/>', $sInput);
+    return str_replace(array('&#10;', '\n'), '<br/>', html_entity_decode($sInput));
 }
 
-function stringToTextareaString(string $sInput)
+function stringToTextareaString(string $sInput = null)
 {
-    return str_replace(array('<br/>', '\n'), '&#10;', $sInput);
+    return str_replace(array('<br/>', '\n'), '&#10;', html_entity_decode($sInput));
 }
 
-function stringToCleanString(string $sInput)
+function stringToCleanString(string $sInput = null)
 {
-    return str_replace(array('<br/>', '&#10;'), '\n', $sInput);
+    return str_replace(array('<br/>', '&#10;'), '\n', htmlentities($sInput));
 }
 
 function redirectNow(string $sLocation)
 {
     $_SESSION['#disabled'] = true;
     header("location:$sLocation");
+}
+
+function setNewChap(DB_Connector $oConnect, $aArray, string $sKey = 'chap')
+{
+    if (!$aArray) {
+        $aArray = $_GET;
+    }
+    if (isset($aArray[$sKey])) {
+        $aChap = $oConnect->getChapArrFromID($aArray[$sKey]);
+        setNovel($aChap['Novels_ID']);
+        setChapter($aChap['ChapNummer']);
+    }
 }

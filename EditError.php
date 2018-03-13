@@ -3,10 +3,11 @@ require_once 'DB_Connector.php';
 require_once 'functions.php';
 initiateSession();
 $oConnector = new DB_Connector();
-$sChapText = getChapText(getCurrentChapter());
-$sOrig = $_GET['original'] ?? '';
-$sRepl = $_GET['corrected'] ?? '';
-$sComment = $_GET['comments'] ?? '';
+setNewChap($oConnector, $_POST, 'chap');
+$sChapText = stringToCleanString(getChapText(getCurrentChapter()));
+$sOrig = stringToCleanString($_GET['original'] ?? '');
+$sRepl = stringToCleanString($_GET['corrected'] ?? '');
+$sComment = stringToCleanString($_GET['comment'] ?? '');
 $iType = $_GET['type'] ?? 0;
 
 if (isset($_GET['sub'])) {
@@ -14,6 +15,10 @@ if (isset($_GET['sub'])) {
     $bError = false;
     if (empty($sOrig) || !isUnique($sOrig, $sChapText)) {
         setMessage('The original string needs to be unique in this chapter!', 'error');
+        $bError = true;
+    }
+    if ($sOrig === $sRepl) {
+        setMessage('There is no difference between the original and the replacement. Looks like you made a typo...', 'error');
         $bError = true;
     }
     if (empty($sRepl)) {
@@ -28,7 +33,7 @@ if (isset($_GET['sub'])) {
         $iChapID = $oConnector->getChapID(getCurrentNovel(), getCurrentChapter());
         if ($oConnector->createError($iChapID, $sOrig, $sRepl, $sComment, $iType)) {
             setMessage('Error was saved to the database.');
-            redirectNow('ViewChap.php');
+            redirectNow('EditError.php');
         }
     }
 }
@@ -45,13 +50,12 @@ if (isset($_GET['sub'])) {
 showMessages();
 ?>
 <h1>Edit Error</h1>
+<form method="post">
+    <label><?php
+        printNovelSelect($oConnector, 'chap', $oConnector->getChapID(getCurrentNovel(), getCurrentChapter()));
+        ?> Choose a different chapter</label>
+</form>
 <form method="get">
-    <label>
-        <input type="text" disabled value="<?php echo $oConnector->getNovelName(getCurrentNovel()); ?>"> Novel
-    </label><br/>
-    <label>
-        <input type="text" disabled value="<?php echo getCurrentChapter(); ?>"> Chapter
-    </label><br/>
     <label>
         <input type="text" name="original" value="<?php echo $sOrig; ?>" placeholder="Erroneous string"> Original text
         from the novel
@@ -70,8 +74,9 @@ showMessages();
         printTypeSelect($oConnector, 'type', $iType);
         ?> Error type
     </label><br/>
-    <input type="submit" value="Submit" name="sub">
+    <input type="submit" value="Submit" name="sub"><br/>
 </form>
 <textarea readonly><?php echo stringToTextareaString($sChapText); ?></textarea>
+<a href="ViewChap.php">Cancel and view chapter</a>
 </body>
 </html>
