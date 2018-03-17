@@ -182,3 +182,30 @@ function setNewChap(DB_Connector $oConnect, $aArray, string $sKey = 'chap')
         setChapter($aChap['ChapNummer']);
     }
 }
+
+function markErrorInText(string $sText, array $aError)
+{
+    $sErrorMarkup = getErrorMarkup($aError);
+    if (!isUnique($aError['original'], $sText)) {
+        setMessage("Error '$aError[original]' is not unique or does not appear at all in this chapter.", 'error');
+        return $sText;
+    }
+    return str_replace($aError['original'], $sErrorMarkup, $sText);
+}
+
+function getErrorMarkup(array $aError)
+{
+    $aInnerMarkup = getInnerErrorMarkup($aError);
+    return "<span id=$aError[ID]>$aInnerMarkup</span>";
+}
+
+function getInnerErrorMarkup(array $aError)
+{
+    $sApply = $aError['Apply'] ? 'false' : 'true';
+    $sErrorMarkup = "<span class='typo' style='background-color: $aError[Color]' onclick='setApply($aError[ID], $sApply); return false'>$aError[original]</span>";
+    if ($aError['Apply']) {
+        $sErrorMarkup .= " | <a class='corrected' href='EditError.php?id=$aError[ID]'>$aError[corrected]</a>";
+        $sErrorMarkup .= $aError['Comment'] ? " <span class='comment'>[$aError[Comment]]</span>" : '';
+    }
+    return $sErrorMarkup;
+}

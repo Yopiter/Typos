@@ -12,7 +12,7 @@ if (isset($_GET['chap'])) {
         $aChap = $oConnect->getChapArrFromID($iSelected);
         setNovel($aChap['Novels_ID']);
         setChapter($aChap['ChapNummer']);
-        redirectNow('EditError.php');
+        redirectNow('NewError.php');
     }
 }
 ?>
@@ -34,7 +34,7 @@ if (isset($_GET['chap'])) {
         <input type="submit" value="View Chapter">
     </form>
     <br/>
-    <a href="importChaps.php">Import new Chaps (Slow AF)</a>
+    <a class="button" href="importChaps.php">Import new Chaps (Slow AF)</a>
     </body>
     </html>
 <?php

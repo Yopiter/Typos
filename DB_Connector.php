@@ -94,7 +94,7 @@ class DB_Connector
         return mysqli_query($this->oConnection, $sSQL);
     }
 
-    public function getNovelName(int $iNovelID)
+    public function getNovelName(int $iNovelID): string
     {
         $sSql = "SELECT Name FROM EP_Novels Where ID=$iNovelID";
         $oResult = mysqli_query($this->oConnection, $sSql);
@@ -166,5 +166,46 @@ class DB_Connector
             return false;
         }
         return true;
+    }
+
+    public function getAllErrorsFromChap($iChapID): array
+    {
+        $sSql = "SELECT *, EP_Errors.ID AS ErrID from EP_Errors JOIN EP_ErrorTypes on EP_Errors.type = EP_ErrorTypes.ID WHERE Chaper_ID = $iChapID";
+        $oErg = mysqli_query($this->oConnection, $sSql);
+        if (!$oErg) {
+            setMessage('An error occured while loading the errors: ' . mysqli_error($this->oConnection), 'error');
+            return [];
+        }
+        $aErrors = [];
+        while ($aRow = mysqli_fetch_array($oErg)) {
+            $aRow['ID'] = $aRow['ErrID'];
+            $aErrors[$aRow['ErrID']] = $aRow;
+        }
+        return $aErrors;
+    }
+
+    public function setApplyForError($iErrorID, bool $bApply): bool
+    {
+        $iApply = $bApply ? 1 : 0;
+        $sSql = "UPDATE EP_Errors SET Apply = $iApply where ID = $iErrorID";
+        $oErg = mysqli_query($this->oConnection, $sSql);
+        if (!$oErg) {
+            setMessage("An error occured while (de)activating error $iErrorID: " . mysqli_error($this->oConnection), 'error');
+            return false;
+        }
+        return true;
+    }
+
+    public function getErrorArray($iErrorID): array
+    {
+        $sSql = "SELECT *, EP_Errors.ID AS ErrID from EP_Errors JOIN EP_ErrorTypes on EP_Errors.type=EP_ErrorTypes.ID WHERE EP_Errors.ID=$iErrorID";
+        $oErg = mysqli_query($this->oConnection, $sSql);
+        if (!$oErg) {
+            setMessage("An error occured while fetching error $iErrorID: " . mysqli_error($this->oConnection), 'error');
+            return [];
+        }
+        $aError = mysqli_fetch_array($oErg);
+        $aError['ID'] = $aError['ErrID'];
+        return $aError;
     }
 }

@@ -38,7 +38,7 @@
     margin-top: 5px;
 }
 
-a:link, a:visited {
+.button {
     background-color: #f44336;
     color: white;
     padding: 12px 22px;
@@ -49,8 +49,21 @@ a:link, a:visited {
     margin: 5px 10px;
 }
 
-a:hover, a:active {
-    background-color: red;
+.corrected {
+    background-color: darkgreen;
+    color: #FFFFFF;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.typo{
+    font-weight: bold;
+    color: black;
+}
+
+.comment {
+    color: gray;
+    font-style: italic;
 }
 
 textarea {
