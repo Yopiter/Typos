@@ -31,10 +31,9 @@ if (isset($_GET['chap'])) {
         <?php
         printNovelSelect($oConnect, 'chap', $iSelected);
         ?>
-        <input type="submit" value="View Chapter">
     </form>
     <br/>
-    <a class="button" href="importChaps.php">Import new Chaps (Slow AF)</a>
+    <a class="button" href="importChaps.php">Import new Chaps</a>
     </body>
     </html>
 <?php

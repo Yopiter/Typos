@@ -202,10 +202,26 @@ function getErrorMarkup(array $aError)
 function getInnerErrorMarkup(array $aError)
 {
     $sApply = $aError['Apply'] ? 'false' : 'true';
-    $sErrorMarkup = "<span class='typo' style='background-color: $aError[Color]' onclick='setApply($aError[ID], $sApply); return false'>$aError[original]</span>";
+    $sErrorMarkup = "<span class='typo' title='Click to (de-)activate this error' style='background-color: $aError[Color]' onclick='setApply($aError[ID], $sApply); return false'>$aError[original]</span>";
     if ($aError['Apply']) {
-        $sErrorMarkup .= " | <a class='corrected' href='EditError.php?id=$aError[ID]'>$aError[corrected]</a>";
+        $sErrorMarkup .= " | <a class='corrected' title='$aError[Name]' href='EditError.php?id=$aError[ID]'>$aError[corrected]</a>";
         $sErrorMarkup .= $aError['Comment'] ? " <span class='comment'>[$aError[Comment]]</span>" : '';
     }
     return $sErrorMarkup;
+}
+
+function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent=false)
+{
+    $sChapText=getChapText($iChapNummer);
+    $iChapID=$oConnect->getChapID($iNovelID,$iChapNummer);
+    $aErrors=$oConnect->getAllErrorsFromChap($iChapID);
+    foreach($aErrors as $aError){
+	if(!$aError['Apply']) continue; //Nur aktive Fehler eintragen
+	if(!isUnique($aError['original'])){
+	 setMessage("An Error occured while getting the corrected chaptext: An error was not unique!",'error');
+	 continue;
+	}
+	$sChapText=str_replace($aError['original'],$aError['corrected'],$sChapText);
+    }
+    return $sChaptext;
 }

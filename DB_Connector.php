@@ -208,4 +208,15 @@ class DB_Connector
         $aError['ID'] = $aError['ErrID'];
         return $aError;
     }
+
+    public function changeError($iErrorID, $sOriginal, $sReplacement, $sComment, $iTyp): bool
+    {
+        $sSql = "UPDATE `EP_Errors` SET `original` = '$sOriginal', `corrected` = '$sReplacement', `type` = '$iTyp', `Comment` = '$sComment' WHERE `EP_Errors`.`ID` = $iErrorID ";
+        $oResult = mysqli_query($this->oConnection, $sSql);
+        if (!$oResult) {
+            setMessage('An (database-, not typo-) error occured while editing this error: ' . mysqli_error($this->oConnection), 'error');
+            return false;
+        }
+        return true;
+    }
 }
