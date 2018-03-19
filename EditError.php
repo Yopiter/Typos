@@ -1,12 +1,12 @@
 <?php
+require_once 'functions.php';
+require_once 'DB_Connector.php';
 
 if (!isset($_GET['id']) && !isset($_POST['id'])) {
     setMessage('No typo given to edit...', 'error');
     redirectNow('ViewChap.php');
 }
 
-require_once 'DB_Connector.php';
-require_once 'functions.php';
 initiateSession();
 $oConnector = new DB_Connector();
 $sChapText = stringToCleanString(getChapText(getCurrentChapter()));
