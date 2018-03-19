@@ -10,31 +10,11 @@ $sRepl = stringToCleanString($_GET['corrected'] ?? '');
 $sComment = stringToCleanString($_GET['comment'] ?? '');
 $iType = $_GET['type'] ?? 0;
 
-if (isset($_GET['sub'])) {
-    //Prüfung aller Eingaben
-    $bError = false;
-    if (empty($sOrig) || !isUnique($sOrig, $sChapText)) {
-        setMessage('The original string needs to be unique in this chapter!', 'error');
-        $bError = true;
-    }
-    if ($sOrig === $sRepl) {
-        setMessage('There is no difference between the original and the replacement. Looks like you made a typo... SHAME ON YOU!!', 'error');
-        $bError = true;
-    }
-    if (empty($sRepl)) {
-        setMessage('The replacement needs to contain something. If you want to delete something, use some surrounding words as a buffer for both the original and the replacing string');
-        $bError = true;
-    }
-    if (empty($iType)) {
-        setMessage('Please choose an error type. This will be used to distinguish between errors when highlighting them.', 'error');
-        $bError = true;
-    }
-    if (!$bError) {
-        $iChapID = $oConnector->getChapID(getCurrentNovel(), getCurrentChapter());
-        if ($oConnector->createError($iChapID, $sOrig, $sRepl, $sComment, $iType)) {
-            setMessage('Error was saved to the database.');
-            redirectNow('NewError.php');
-        }
+if (isset($_GET['sub']) && !isErrorInputOK($sOrig, $sRepl, $sChapText, $iType, $oConnector)) {
+    $iChapID = $oConnector->getChapID(getCurrentNovel(), getCurrentChapter());
+    if ($oConnector->createError($iChapID, $sOrig, $sRepl, $sComment, $iType)) {
+        setMessage('Error was saved to the database.');
+        redirectNow('NewError.php');
     }
 }
 

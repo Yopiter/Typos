@@ -63,7 +63,7 @@ function setMessage($sNachricht, $sType = 'bestaetigung')
 
 function showMessages()
 {
-    if (isset($_SESSION['#disabled']) && $_SESSION['#disabled']) {
+    if (!empty($_SESSION['#disabled'])) {
         return;
     }
     if (!empty($_SESSION['messages'])) {
@@ -210,18 +210,61 @@ function getInnerErrorMarkup(array $aError)
     return $sErrorMarkup;
 }
 
-function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent = false)
+function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent = false, $bRemove = false, array $aIgnorieren = [])
 {
     $sChapText = getChapText($iChapNummer);
     $iChapID = $oConnect->getChapID($iNovelID, $iChapNummer);
     $aErrors = $oConnect->getAllErrorsFromChap($iChapID);
     foreach ($aErrors as $aError) {
-        if (!$aError['Apply']) continue; //Nur aktive Fehler eintragen
-        if (!isUnique($aError['original'])) {
-            setMessage("An Error occured while getting the corrected chaptext: An error was not unique!", 'error');
+        if (!$aError['Apply'] || in_array($aError['ID'], $aIgnorieren, false)) {
+            //Nur aktive Fehler eintragen
             continue;
         }
-        $sChapText = str_replace($aError['original'], $aError['corrected'], $sChapText);
+        if (!isUnique($aError['original'], $sChapText)) {
+            if (!$bSilent) {
+                setMessage('An Error occured while getting the corrected chaptext: An error was not unique!', 'error');
+            }
+            continue;
+        }
+        $sChapText = str_replace($aError['original'], $bRemove ? '' : $aError['corrected'], $sChapText);
     }
-    return $sChaptext;
+    return $sChapText;
+}
+
+function doDownloadAsTxt($sContent, $sFilename)
+{
+    header('Content-type: text/plain');
+    header("Content-Disposition: attachment; filename=$sFilename");
+    foreach (explode('\n', $sContent) as $sLine) {
+        echo $sLine . "\r\n";
+    }
+    exit();
+}
+
+function isErrorInputOK($sOrig, $sRepl, $sChapText, $iTyp, DB_Connector $oConnect, $iID = null)
+{
+    $bError = false;
+    if (empty($sOrig) || !isUnique($sOrig, $sChapText)) {
+        setMessage('The original string needs to be unique in this chapter!', 'error');
+        $bError = true;
+    }
+    if ($sOrig === $sRepl) {
+        setMessage('There is no difference between the original and the replacement. Looks like you made a typo... SHAME ON YOU!!', 'error');
+        $bError = true;
+    }
+    if (empty($sRepl)) {
+        setMessage('The replacement needs to contain something. If you want to delete something, use some surrounding words as a buffer for both the original and the replacing string');
+        $bError = true;
+    }
+    if (empty($iTyp)) {
+        setMessage('Please choose an error type. This will be used to distinguish between errors when highlighting them.', 'error');
+        $bError = true;
+    }
+    //Chaptext minus alle anderen Fehler holen
+    $sChapText = getCorrectedChapText(getCurrentChapter(), getCurrentNovel(), $oConnect, false, true, $iID ? [$iID] : []);
+    if (!isUnique($sOrig, $sChapText)) {
+        setMessage('This error seems to overlap with some other error in this chapter. Please consider merging them into one!', 'error');
+        $bError = true;
+    }
+    return $bError;
 }

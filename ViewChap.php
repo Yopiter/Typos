@@ -4,6 +4,10 @@ require_once 'DB_Connector.php';
 initiateSession();
 checkForParameters(['chap'], $_SESSION);
 $oConnect = new DB_Connector();
+if (!empty($_GET['download'])) {
+    $sChapTextCorrect = getCorrectedChapText(getCurrentChapter(), getCurrentNovel(), $oConnect);
+    doDownloadAsTxt($sChapTextCorrect, 'Chapter_' . getCurrentChapter());
+}
 setNewChap($oConnect, $_POST, 'chap');
 $iChapNumm = getCurrentChapter();
 $sText = stringToCleanString(getChapText($iChapNumm));
@@ -27,6 +31,7 @@ showMessages();
 <h1>Chapter <?php echo $iChapNumm ?></h1>
 <form method="post">
     <a class="button" href="NewError.php">Note Error</a>
+    <a class="button" href="ViewChap.php?download=1">Download correct(-ish) text</a>
     <?php
     echo "<a class='button' href='http://www.wuxiaworld.com/bp-index/bp-chapter-$iChapNumm/'>Link to WuxiaWorld</a>";
     printNovelSelect($oConnect, 'chap', $oConnect->getChapID(getCurrentNovel(), $iChapNumm, true));
