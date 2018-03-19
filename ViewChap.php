@@ -26,21 +26,22 @@ showMessages();
 ?>
 <h1>Chapter <?php echo $iChapNumm ?></h1>
 <form method="post">
-<a class="button" href="NewError.php">Note Error</a>
-<?php
-echo "<a class='button' href='http://www.wuxiaworld.com/bp-index/bp-chapter-$iChapNumm/'>Link to WuxiaWorld</a>";
-printNovelSelect($oConnect, 'chap', $oConnect->getChapID(getCurrentNovel(), $iChapNumm, true));
-?>
+    <a class="button" href="NewError.php">Note Error</a>
+    <?php
+    echo "<a class='button' href='http://www.wuxiaworld.com/bp-index/bp-chapter-$iChapNumm/'>Link to WuxiaWorld</a>";
+    printNovelSelect($oConnect, 'chap', $oConnect->getChapID(getCurrentNovel(), $iChapNumm, true));
+    ?>
 </form>
 <br/>
 <div class='info'>
-Click the marked error strings to activate or deactivate this error. Click the corrected, green string to edit this error. Click the comment to do absolutely nothing and waste your time.<br/>
-Hover your mouse over one of the parts to show more information.
+    Click the marked error strings to activate or deactivate this error. Click the corrected, green string to edit this
+    error. Click the comment to do absolutely nothing and waste your time.<br/>
+    Hover your mouse over one of the parts to show more information.
 </div>
 <div class='viewText'>
-<?php
-echo stringToShowString($sText);
-?>
+    <?php
+    echo stringToShowString($sText);
+    ?>
 </div>
 </body>
 </html>

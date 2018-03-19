@@ -210,18 +210,18 @@ function getInnerErrorMarkup(array $aError)
     return $sErrorMarkup;
 }
 
-function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent=false)
+function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent = false)
 {
-    $sChapText=getChapText($iChapNummer);
-    $iChapID=$oConnect->getChapID($iNovelID,$iChapNummer);
-    $aErrors=$oConnect->getAllErrorsFromChap($iChapID);
-    foreach($aErrors as $aError){
-	if(!$aError['Apply']) continue; //Nur aktive Fehler eintragen
-	if(!isUnique($aError['original'])){
-	 setMessage("An Error occured while getting the corrected chaptext: An error was not unique!",'error');
-	 continue;
-	}
-	$sChapText=str_replace($aError['original'],$aError['corrected'],$sChapText);
+    $sChapText = getChapText($iChapNummer);
+    $iChapID = $oConnect->getChapID($iNovelID, $iChapNummer);
+    $aErrors = $oConnect->getAllErrorsFromChap($iChapID);
+    foreach ($aErrors as $aError) {
+        if (!$aError['Apply']) continue; //Nur aktive Fehler eintragen
+        if (!isUnique($aError['original'])) {
+            setMessage("An Error occured while getting the corrected chaptext: An error was not unique!", 'error');
+            continue;
+        }
+        $sChapText = str_replace($aError['original'], $aError['corrected'], $sChapText);
     }
     return $sChaptext;
 }
