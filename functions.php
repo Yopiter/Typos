@@ -26,6 +26,9 @@ function initiateSession()
     if (empty($_SESSION['chap'])) {
         $_SESSION['chap'] = 1;
     }
+    if (empty($_SESSION['user'])){
+	redirectNow('LogIn.php');
+    }
 }
 
 function setNovel($iNovelId)
