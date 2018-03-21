@@ -26,9 +26,43 @@ function initiateSession()
     if (empty($_SESSION['chap'])) {
         $_SESSION['chap'] = 1;
     }
-    if (empty($_SESSION['user'])){
-	redirectNow('LogIn.php');
+    if (!checkIP($_SERVER['REMOTE_ADDR'])) {
+        redirectNow('LogIn.php');
     }
+}
+
+function checkIP($sIP)
+{
+    $aIPs = [];
+    $sIP = trim($sIP);
+    $aFile = file('ip.txt', FILE_IGNORE_NEW_LINES);
+    foreach ($aFile as $sUserString) {
+        $aLine = explode('||', $sUserString);
+        if (count($aLine) !== 2 || (int)$aLine[1] - time() > (72 * 60 * 60)) {
+            continue;
+        }
+        $aIPs[trim($aLine[0])] = trim($aLine[1]);
+    }
+    if (empty($aIPs[$sIP])) {
+        setMessage('Your IP is not registered in our system, please log in first', 'warning');
+        return false;
+    }
+    if ((int)$aIPs[$sIP] - time() > (24 * 60 * 60)) {
+        //veralteten Eintrag löschen
+        unset($aIPs[$sIP]);
+        file_put_contents('ip.txt', array_map(function ($sIP, $sTime) {
+            return $sIP . '||' . $sTime . "\n";
+        }, array_keys($aIPs), array_values($aIPs)));
+        setMessage('Your Login has expired.', 'warning');
+        return false;
+    }
+    return true;
+}
+
+function registerIP($sIP)
+{
+    $sNewLine = "\n" . $sIP . '||' . time();
+    return file_put_contents('ip.txt', $sNewLine, FILE_APPEND) !== false;
 }
 
 function setNovel($iNovelId)
@@ -247,9 +281,11 @@ function doDownloadAsTxt($sContent, $sFilename)
 function isErrorInputOK($sOrig, $sRepl, $sChapText, $iTyp, DB_Connector $oConnect, $iID = null)
 {
     $bError = false;
+    $bUnique = true;
     if (empty($sOrig) || !isUnique($sOrig, $sChapText)) {
         setMessage('The original string needs to be unique in this chapter!', 'error');
         $bError = true;
+        $bUnique = false;
     }
     if ($sOrig === $sRepl) {
         setMessage('There is no difference between the original and the replacement. Looks like you made a typo... SHAME ON YOU!!', 'error');
@@ -263,9 +299,9 @@ function isErrorInputOK($sOrig, $sRepl, $sChapText, $iTyp, DB_Connector $oConnec
         setMessage('Please choose an error type. This will be used to distinguish between errors when highlighting them.', 'error');
         $bError = true;
     }
-    //Chaptext minus alle anderen Fehler holen
+    //Chaptext minus alle anderen Fehler holen //Nur, wenn es normalerweise unique w�re!
     $sChapText = getCorrectedChapText(getCurrentChapter(), getCurrentNovel(), $oConnect, false, true, $iID ? [$iID] : []);
-    if (!isUnique($sOrig, $sChapText)) {
+    if ($bUnique && !isUnique($sOrig, $sChapText)) {
         setMessage('This error seems to overlap with some other error in this chapter. Please consider merging them into one!', 'error');
         $bError = true;
     }

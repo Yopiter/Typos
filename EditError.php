@@ -21,7 +21,7 @@ $iType = $_POST['type'] ?? $aError['type'];
 
 if (isset($_POST['sub']) && !isErrorInputOK($sOrig, $sRepl, $sChapText, $iType, $oConnector, $iID)) {
     $iChapID = $oConnector->getChapID(getCurrentNovel(), getCurrentChapter());
-    if ($oConnector->createError($iChapID, $sOrig, $sRepl, $sComment, $iType)) {
+    if ($oConnector->changeError($iID, $sOrig, $sRepl, $sComment, $iType)) {
         setMessage('Error was saved to the database.');
         redirectNow('NewError.php');
     }

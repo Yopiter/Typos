@@ -4,7 +4,7 @@ class DB_Connector
 {
     private $oConnection;
 
-    public function __construct(string $sHost = 'localhost', string $sDB = 'Typos', string $sUser = 'admin', string $sPw = 'admin')
+    public function __construct(string $sHost = 'localhost', string $sDB = 'Typos', string $sUser = 'skriptkiddie', string $sPw = '0815Hax0r')
     {
         $this->oConnection = mysqli_connect($sHost, $sUser, $sPw, $sDB);
         if (!$this->oConnection) {
