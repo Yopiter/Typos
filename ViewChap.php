@@ -33,8 +33,9 @@ showMessages();
     <a class="button" href="NewError.php">Note Error</a>
     <a class="button" href="ViewChap.php?download=1">Download correct(-ish) text</a>
     <?php
-    echo "<a class='button' href='".getChapUrl($iChapNumm)."'>Link to WuxiaWorld</a>";
+    echo "<a class='button' href='" . getChapUrl($iChapNumm) . "'>Link to WuxiaWorld</a>";
     printNovelSelect($oConnect, 'chap', $oConnect->getChapID(getCurrentNovel(), $iChapNumm, true));
+    printNextChapLink($oConnect);
     ?>
 </form>
 <br/>

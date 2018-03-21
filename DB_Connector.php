@@ -219,4 +219,18 @@ class DB_Connector
         }
         return true;
     }
+
+    public function getNextChapIdWithError($iNovelID, $iCurrentChapNummer): int
+    {
+        $sSql = "SELECT EP_Chapters.ID As chapID FROM EP_Errors join EP_Chapters on EP_Chapters.ID=EP_Errors.Chaper_ID WHERE EP_Chapters.Novels_ID=$iNovelID AND EP_Chapters.ChapNummer > $iCurrentChapNummer ORDER BY EP_Chapters.ChapNummer ASC LIMIT 1";
+        if (!$oErg = mysqli_query($this->oConnection, $sSql)) {
+            setMessage('An error occured while searching for the next chapter: ' . mysqli_error($this->oConnection));
+            return 0;
+        }
+        if (!$aResult = mysqli_fetch_array($oErg)) {
+            //Kein nächstes Chapter!
+            return 0;
+        }
+        return (int)$aResult['chapID'];
+    }
 }

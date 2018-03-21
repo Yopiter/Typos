@@ -47,6 +47,7 @@ function checkIP($sIP)
         setMessage('Your IP is not registered in our system, please log in first', 'warning');
         return false;
     }
+    /** @noinspection SummerTimeUnsafeTimeManipulationInspection */
     if ((int)$aIPs[$sIP] - time() > (24 * 60 * 60)) {
         //veralteten Eintrag löschen
         unset($aIPs[$sIP]);
@@ -210,11 +211,17 @@ function redirectNow(string $sLocation)
 
 function setNewChap(DB_Connector $oConnect, $aArray, string $sKey = 'chap')
 {
+    if (!empty($_GET['newChap'])) {
+        $iNewChap = $_GET['newChap']; //Neues Chap über Button gegeben
+    }
     if (!$aArray) {
         $aArray = $_GET;
     }
     if (isset($aArray[$sKey])) {
-        $aChap = $oConnect->getChapArrFromID($aArray[$sKey]);
+        $iNewChap = $aArray[$sKey]; //Höhere Prio als über URL
+    }
+    if (isset($iNewChap)) {
+        $aChap = $oConnect->getChapArrFromID($iNewChap);
         setNovel($aChap['Novels_ID']);
         setChapter($aChap['ChapNummer']);
     }
@@ -299,11 +306,21 @@ function isErrorInputOK($sOrig, $sRepl, $sChapText, $iTyp, DB_Connector $oConnec
         setMessage('Please choose an error type. This will be used to distinguish between errors when highlighting them.', 'error');
         $bError = true;
     }
-    //Chaptext minus alle anderen Fehler holen //Nur, wenn es normalerweise unique w�re!
+    //Chaptext minus alle anderen Fehler holen //Nur, wenn es normalerweise unique wäre!
     $sChapText = getCorrectedChapText(getCurrentChapter(), getCurrentNovel(), $oConnect, false, true, $iID ? [$iID] : []);
     if ($bUnique && !isUnique($sOrig, $sChapText)) {
         setMessage('This error seems to overlap with some other error in this chapter. Please consider merging them into one!', 'error');
         $bError = true;
     }
     return $bError;
+}
+
+function printNextChapLink(DB_Connector $oConnect)
+{
+    $iNextChapNum = $oConnect->getNextChapIdWithError(getCurrentNovel(), getCurrentChapter());
+    if (!($iNextChapNum > getCurrentChapter())) {
+        //Letztes Chapter erreicht
+        return;
+    }
+    echo "<a href='ViewChap.php?newChap=$iNextChapNum' class='button'>Next erroneous chapter</a>";
 }
