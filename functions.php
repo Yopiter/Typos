@@ -3,7 +3,12 @@
 function getChapText($iChapNummer, $sLineBreak = '\n')
 {
     $sUrl = getChapUrl($iChapNummer);
-    $sContent = file_get_contents($sUrl);
+    try {
+        $sContent = file_get_contents($sUrl);
+    } catch (Exception $exception) {
+        setMessage($exception->getMessage(),'error');
+        return 'An error occured while loading the chaptext. Please check your internet connection!';
+    }
     $sContent = explode('<div id="chapterContent" class="innerContent fr-view">', $sContent)[1] ?? '';
     $sContent = explode('</div>', $sContent)[0] ?? '';
     $iHits = preg_match_all("/<p[^>]*>((?!<\/p>).)*<\/p>/", $sContent, $aRows);
@@ -256,7 +261,7 @@ function getInnerErrorMarkup(array $aError)
 
 function getCorrectedChapText($iChapNummer, $iNovelID, DB_Connector $oConnect, $bSilent = false, $bRemove = false, array $aIgnorieren = [])
 {
-    $sChapText = getChapText($iChapNummer);
+    $sChapText = stringToCleanString(getChapText($iChapNummer));
     $iChapID = $oConnect->getChapID($iNovelID, $iChapNummer);
     $aErrors = $oConnect->getAllErrorsFromChap($iChapID);
     foreach ($aErrors as $aError) {
