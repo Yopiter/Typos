@@ -145,7 +145,7 @@ class DB_Connector
 
     public function createError(int $iChapID, string $sOrig, string $sReplace, string $sComment, int $iErrorType): bool
     {
-        $this->escapeForSQL($sOrig,$sReplace,$sComment);
+        $this->escapeForSQL($sOrig, $sReplace, $sComment);
         $sSql = "Insert into EP_Errors (`ID`,`Chaper_ID`,`original`,`corrected`,`type`,`Comment`) VALUES (NULL,$iChapID,'$sOrig','$sReplace',$iErrorType,'$sComment')";
         $oResult = mysqli_query($this->oConnection, $sSql);
         if (!$oResult) {
@@ -212,7 +212,7 @@ class DB_Connector
 
     public function changeError($iErrorID, $sOriginal, $sReplacement, $sComment, $iTyp): bool
     {
-        $this->escapeForSQL($sOrig,$sReplace,$sComment);
+        $this->escapeForSQL($sOrig, $sReplace, $sComment);
         $sSql = "UPDATE `EP_Errors` SET `original` = '$sOriginal', `corrected` = '$sReplacement', `type` = '$iTyp', `Comment` = '$sComment' WHERE `EP_Errors`.`ID` = $iErrorID ";
         $oResult = mysqli_query($this->oConnection, $sSql);
         if (!$oResult) {
@@ -236,10 +236,10 @@ class DB_Connector
         return (int)$aResult['chapID'];
     }
 
-    public function escapeForSQL(&...$aString): void
+    public function escapeForSQL(&...$aString)
     {
-        foreach ($aString as &$sString){
-            $sString=mysqli_real_escape_string($this->oConnection,$sString);
+        foreach ($aString as &$sString) {
+            $sString = mysqli_real_escape_string($this->oConnection, $sString);
         }
     }
 }

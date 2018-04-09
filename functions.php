@@ -6,7 +6,7 @@ function getChapText($iChapNummer, $sLineBreak = '\n')
     try {
         $sContent = file_get_contents($sUrl);
     } catch (Exception $exception) {
-        setMessage($exception->getMessage(),'error');
+        setMessage($exception->getMessage(), 'error');
         return 'An error occured while loading the chaptext. Please check your internet connection!';
     }
     $sContent = explode('<div id="chapterContent" class="innerContent fr-view">', $sContent)[1] ?? '';
