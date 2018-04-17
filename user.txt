@@ -3,3 +3,5 @@ CodingGod||NotMyIdea
 GrammarPained||ithurtssobad
 
 translator||translator
+MisterVeto||idontthinkso
+ErrorCorrector||ImMorePerfect

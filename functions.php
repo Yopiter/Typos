@@ -1,7 +1,14 @@
 <?php
 
+$aChapTexte = [];
+
 function getChapText($iChapNummer, $sLineBreak = '\n')
 {
+    global $aChapTexte;
+    if (!empty($aChapTexte[$iChapNummer])) {
+        //Chaptext chachen, um nicht so viele Anfragen zu haben
+        return $aChapTexte[$iChapNummer];
+    }
     $sUrl = getChapUrl($iChapNummer);
     try {
         $sContent = file_get_contents($sUrl);
@@ -15,7 +22,7 @@ function getChapText($iChapNummer, $sLineBreak = '\n')
     if (empty($iHits)) {
         die("Keine Inhalte auf der <a href='$sUrl'>Seite</a> gefunden");
     }
-    return implode($sLineBreak, array_map(function ($sRow) {
+    return $aChapTexte[$iChapNummer] = implode($sLineBreak, array_map(function ($sRow) {
         return preg_replace('/<.*?>/', '', $sRow);
     }, $aRows[0]));
 }
